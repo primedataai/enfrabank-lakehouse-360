@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: enfrabank-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: bankadmin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: enfrabank
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bankadmin -d enfrabank"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  objectstore:
+    image: rustfs/rustfs:latest
+    container_name: enfrabank-objectstore
+    restart: unless-stopped
+    command: ["/data"]
+    environment:
+      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY}
+      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY}
+      RUSTFS_ADDRESS: "0.0.0.0:9000"
+      RUSTFS_CONSOLE_ADDRESS: "0.0.0.0:9001"
+      RUSTFS_CONSOLE_ENABLE: "true"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - objectstore_data:/data
+
+volumes:
+  postgres_data:
+  objectstore_data:
